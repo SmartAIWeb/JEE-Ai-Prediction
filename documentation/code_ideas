@@ -1,0 +1,39 @@
+Website Pages:
+/register
+/login
+/profile: Display the user's info, and allowing the modification of these info
+/predict: Allow the user to fill a form, then redirect the data into the ML module, then display the results
+/history: If a normal user is logged in, it would display the user's prediction history,
+           but an admin would have access to all users' history
+/admin: Allows the admin to delete or promote a user (to an admin),
+         also giving them the overall stats of predictions
+
+DB Tables:
+Users [id, firstName, lastName, age, gender, email, password, role("user", "admin"), created_at]
+History [id, user_id, input_data(JSON), prediction_res, probability, date]
+
+Python Module:
+- Leave it for later
+
+Code Flow:
+- User sends a GET request to one of the pages, and gets the JSP
+- For register, the user has to fill a form then POST request it to the server,
+ which will verify the credentials and save them into the DB
+- For login, same as register, the difference is that the login page asks for only email and password
+- Profile page should be simple, a GET request to the server, which will return
+ (if the request is valid) the user's info, and a POST request to update the user's info
+- Predict page, makes the user fill a form (with data that we need to do a prediction),
+ then sending it to the server, which will do a REST request to the Python server,
+ get the prediction result, then store the result in the DB (for history),
+ after that it will return the prediction to the user
+- History page should be simple as well, the server will verify the privilege of the user,
+ then query the DB and return the results
+- In the Admin page, send a DELETE request to delete a user, a POST request to promote users,
+ a GET request to get prediction stats, which will be used to create graphs
+ and dashboards using a JS library
+
+Notes:
+- The hardest parts in this project would be training the model (getting the dataset
+ and writing the training code itself), also authentication won't be easy
+ (the method the server would use to know if the user has access to the data or not,
+ and what their privilege is)
