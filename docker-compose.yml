@@ -16,6 +16,9 @@ services:
       DB_USER: root
       DB_PASSWORD: root
       ML_API_URL: http://ml-api:5000/predict
+    depends_on:
+      - db
+      - ml-api
 
   db:
     image: mariadb:11
@@ -27,9 +30,6 @@ services:
     environment:
       MARIADB_ROOT_PASSWORD: root
       MARIADB_DATABASE: prediction_app_db
-
-    ports:
-      - "3306:3306"
     networks:
       - backend
 
@@ -45,7 +45,8 @@ services:
       - "5000:5000"
     networks:
       - backend
-     
+    depends_on:
+      - db
 
 volumes:
   db-data:
