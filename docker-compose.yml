@@ -40,7 +40,8 @@ services:
     container_name: jee-ml
     restart: unless-stopped
     volumes:
-      - ./ml-api:/app
+      - ./ml-api/api:/app:z
+      - ./ml-api/models:/app/models:z
     ports:
       - "5000:5000"
     networks:
