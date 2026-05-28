@@ -11,8 +11,6 @@ __pycache__/
 venv/
 *.egg-info/
 
-ml-api/models/*.pkl
-
 .env
 
 .idea/
