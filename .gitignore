@@ -13,6 +13,9 @@ venv/
 
 .env
 
+.classpath
+.project
+.settings/
 .idea/
 .vscode/
 *.iml
