@@ -8,6 +8,8 @@ app = Flask(__name__)
 df = pd.read_csv('preprocessed_kidney_disease_data.csv')
 FEATURE_ORDER = [col for col in df.columns if col not in ['patient_id', 'ckd_diagnosis']]
 
+modele_cache = {}
+
 def reordering_features(user_info):
     # Reordering the features to match the training order
     return [user_info[col] for col in FEATURE_ORDER]
@@ -24,10 +26,18 @@ def predict():
         features = reordering_features(data['user_info'])
         donner_du_modele = np.array([features])
 
-        # Chargement du modele pickle selectionne
-        chemin_de_fichier = f"./models/{modele_name}"
-        with open(chemin_de_fichier, "rb") as fichier:
-            notre_modele = pickle.load(fichier)
+        # optimisation de performance 
+        if modele_name in modele_cache:
+            notre_modele = modele_cache[modele_name]
+        else :
+                
+            # Chargement du modele pickle selectionne
+            chemin_de_fichier = f"./models/{modele_name}"
+            with open(chemin_de_fichier, "rb") as fichier:
+                notre_modele = pickle.load(fichier)
+
+                # sauvegarde dans le cache pour la prochaine fois
+                modele_cache[modele_name] = notre_modele
 
         # L'execution de la prediction
         prediction = notre_modele.predict(donner_du_modele)[0]
