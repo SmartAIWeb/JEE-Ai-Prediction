@@ -8,7 +8,7 @@ services:
     networks:
       - backend
     volumes:
-      - ./web-app/target/predictionApp.war:/usr/local/tomcat/webapps/ROOT.war
+      - ./web-app/target/predictionApp.war:/usr/local/tomcat/webapps/ROOT.war:z
     environment:
       DB_HOST: db
       DB_PORT: 3306
@@ -26,7 +26,7 @@ services:
     restart: unless-stopped
     volumes:
       - db-data:/var/lib/mysql
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql:z
     environment:
       MARIADB_ROOT_PASSWORD: root
       MARIADB_DATABASE: prediction_app_db
