@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import pickle
 import numpy as np
 import pandas as pd
+import os 
 
 app = Flask(__name__)
 
@@ -19,8 +20,12 @@ def predict():
     try:
         data = request.get_json()
 
-        if (data["request_type"] != "prediction" or not data['nom_de_modele'] or not data["user_info"]):
-            return jsonify({"error": "invalid request_type"}), 400
+        # eviter le crash si une cle manque dans le JSON
+        if not data or "request_type" not in data or "nom_de_modele" not in data or "user_info" not in data:
+            return jsonify({"error": "invalid request format(missing keys)"}), 400
+
+        if data["request_type"] != "prediction":
+            return jsonify({"error": "invalid request_type value"}), 400
 
         modele_name = data['nom_de_modele']
         features = reordering_features(data['user_info'])
@@ -33,6 +38,9 @@ def predict():
                 
             # Chargement du modele pickle selectionne
             chemin_de_fichier = f"./models/{modele_name}"
+            #verifier si le fichier exist physiquement 
+            if not os.path.exists(chemin_de_fichier):
+                return jsonify({"error": f"Model {modele_name} not found"}), 404
             with open(chemin_de_fichier, "rb") as fichier:
                 notre_modele = pickle.load(fichier)
 
