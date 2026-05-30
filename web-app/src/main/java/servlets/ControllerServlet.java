@@ -2,6 +2,7 @@ package servlets;
 
 import db.DAOClass;
 import beans.User;
+import beans.Prediction;
 
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.ServletException;
@@ -50,9 +51,9 @@ public class ControllerServlet extends HttpServlet {
       } else if("predict".equals(requestType)) {
         rd = handlePrediction(req, res);
       } else if("history".equals(requestType)) {
-
+        rd = handleHistory(req, res);
       } else if("admin".equals(requestType)) {
-
+        rd = handleadmin(req, res);
       } else {
         rd = req.getRequestDispatcher("/JSP/error.jsp");
         req.setAttribute("error_msg", "Unsupported Request Type");
@@ -166,6 +167,65 @@ RequestDispatcher handlePrediction(HttpServletRequest req , HttpServletResponse 
       return req.getRequestDispatcher("/JSP/login.jsp"); 
     }
 }
+  RequestDispatcher handleHistory(HttpServletRequest req, HttpServletResponse res) 
+      throws SQLException {
+    Cookie[] cookies =req.getCookies();
+    String userToken=null;
+
+    if(cookies != null){
+      for(Cookie c : cookies){
+        if("session_token".equals(c.getName())){
+          userToken = c.getValue();
+          break;
+        }
+      }
+    }
+    if (userToken!=null && loggedInUsers.containsKey(userToken)){
+      User currentUser = loggedInUsers.get(userToken);
+      req.setAttribute("user_info", currentUser);
+      try{
+        ArrayList<Prediction> userHistory = db.getUserHistory(currentUser.getUserId());
+        req.setAttribute("prediction_history",userHistory);
+      }catch(Exception e){
+         req.setAttribute("error_msg","Error fetching history: "+e.getMessage());
+      }
+      return req.getRequestDispatcher("/JSP/history.jsp");
+    }else{
+      req.setAttribute("error_msg", "Access denied, please log in first");
+      return req.getRequestDispatcher("/JSP/login.jsp");
+    }
+}
+  RequestDispatcher handleadmin(HttpServletRequest req , HttpServletResponse res) 
+        throws SQLException {
+      Cookie[] cookies =req.getCookies();
+      String userToken=null;
+
+      if(cookies != null){
+        for(Cookie c : cookies){
+          if("session_token".equals(c.getName())){
+            userToken = c.getValue();
+            break;
+          }
+        }
+      }
+      if (userToken != null && loggedInUsers.containsKey(userToken)) {
+      User currentUser = loggedInUsers.get(userToken);
+      
+      if ("admin".equals(currentUser.getRole())) { 
+        req.setAttribute("user_info", currentUser);
+        ArrayList<User> AllUsers = db.getAllUsers();
+        req.setAttribute("all_users",AllUsers);
+        return req.getRequestDispatcher("/JSP/admin.jsp");
+      } else {
+        req.setAttribute("error_msg", "Access denied: Admins only");
+        return req.getRequestDispatcher("/JSP/profile.jsp");
+      }
+    } else {
+      req.setAttribute("error_msg", "Please log in first");
+      return req.getRequestDispatcher("/JSP/login.jsp");
+    }
+}
+
 
   Cookie createSessionTokenCookie(String sessionToken) {
     Cookie sessionCookie = new Cookie("session_token", sessionToken);
