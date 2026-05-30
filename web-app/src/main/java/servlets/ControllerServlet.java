@@ -103,17 +103,7 @@ public class ControllerServlet extends HttpServlet {
 
   RequestDispatcher handleProfile(HttpServletRequest req, HttpServletResponse res) 
       throws SQLException {
-    Cookie[] cookies =req.getCookies();
-    String userToken=null;
-
-    if(cookies != null){
-      for(Cookie c : cookies){
-        if("session_token".equals(c.getName())){
-          userToken = c.getValue();
-          break;
-        }
-      }
-    }
+    String userToken=getSessionToken(req);
     if (userToken!=null && loggedInUsers.containsKey(userToken)){
       User currentUser = loggedInUsers.get(userToken);
       req.setAttribute("user_info" , currentUser);
@@ -127,30 +117,20 @@ public class ControllerServlet extends HttpServlet {
 
 RequestDispatcher handlePrediction(HttpServletRequest req , HttpServletResponse res) 
       throws SQLException {
-    Cookie[] cookies =req.getCookies();
-    String userToken=null;
-
-    if(cookies != null){
-      for(Cookie c : cookies){
-        if("session_token".equals(c.getName())){
-          userToken = c.getValue();
-          break;
-        }
-      }
-    }
+    String userToken=getSessionToken(req);
     if (userToken!=null && loggedInUsers.containsKey(userToken)){
       User currentUser = loggedInUsers.get(userToken);
       req.setAttribute("user_info" , currentUser);
       try{
         String jsonPayload = req.getParameter("json_data");
-
+        //la connection au api 
         URL url = new URL("http://localhost:5000/predict");
         HttpURLConnection conn= (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setDoOutput(true);
 
-        // Envoi du json
+        //Envoi du json au api 
         conn.getOutputStream().write(jsonPayload.getBytes("UTF-8"));
 
         Scanner sc = new Scanner(conn.getInputStream()).useDelimiter("\\A");
@@ -169,17 +149,7 @@ RequestDispatcher handlePrediction(HttpServletRequest req , HttpServletResponse 
 }
   RequestDispatcher handleHistory(HttpServletRequest req, HttpServletResponse res) 
       throws SQLException {
-    Cookie[] cookies =req.getCookies();
-    String userToken=null;
-
-    if(cookies != null){
-      for(Cookie c : cookies){
-        if("session_token".equals(c.getName())){
-          userToken = c.getValue();
-          break;
-        }
-      }
-    }
+    String userToken=getSessionToken(req);
     if (userToken!=null && loggedInUsers.containsKey(userToken)){
       User currentUser = loggedInUsers.get(userToken);
       req.setAttribute("user_info", currentUser);
@@ -197,20 +167,10 @@ RequestDispatcher handlePrediction(HttpServletRequest req , HttpServletResponse 
 }
   RequestDispatcher handleadmin(HttpServletRequest req , HttpServletResponse res) 
         throws SQLException {
-      Cookie[] cookies =req.getCookies();
-      String userToken=null;
-
-      if(cookies != null){
-        for(Cookie c : cookies){
-          if("session_token".equals(c.getName())){
-            userToken = c.getValue();
-            break;
-          }
-        }
-      }
+      String userToken=getSessionToken(req);
       if (userToken != null && loggedInUsers.containsKey(userToken)) {
       User currentUser = loggedInUsers.get(userToken);
-      
+      //Verification si admin
       if ("admin".equals(currentUser.getRole())) { 
         req.setAttribute("user_info", currentUser);
         ArrayList<User> AllUsers = db.getAllUsers();
@@ -253,4 +213,16 @@ RequestDispatcher handlePrediction(HttpServletRequest req , HttpServletResponse 
     sr.nextBytes(randomBytes);
     return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
   }
+  //recuperer le token du cookie
+private String getSessionToken(HttpServletRequest req) {
+    Cookie[] cookies = req.getCookies();
+    if (cookies != null) {
+        for (Cookie c : cookies) {
+            if ("session_token".equals(c.getName())) {
+                return c.getValue();
+            }
+        }
+    }
+    return null;
+}
 }
