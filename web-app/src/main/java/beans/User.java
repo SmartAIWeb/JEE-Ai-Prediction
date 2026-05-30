@@ -11,6 +11,7 @@ public class User {
   String gender;
   String email;
   String password;
+  String role;
 
   public User() {}
   public User(String firstName, String lastName, int age, String gender, String email, String password) {
@@ -30,6 +31,7 @@ public class User {
     this.gender = row.getString("gender");
     this.email = row.getString("email");
     this.password = row.getString("password");
+    this.role = row.getString("role");
   }
 
   public int getUserId() { return userId; }
@@ -39,6 +41,7 @@ public class User {
   public String getGender() { return gender; }
   public String getEmail() { return email; }
   public String getPassword() { return password; }
+  public String getRole() { return role; }
 
   public void setUserId(int userId) { this.userId = userId; }
   public void setFirstName(String value) { this.firstName = value; }
@@ -47,4 +50,5 @@ public class User {
   public void setGender(String value) { this.gender = value; }
   public void setEmail(String value) { this.email = value; }
   public void setPassword(String value) { this.password = value; }
+  public void setRole(String role) { this.role = role; }
 }
