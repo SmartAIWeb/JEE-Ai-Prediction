@@ -9,6 +9,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.*;
 
 import java.util.ArrayList;
 public class DAOClass {
@@ -97,7 +98,8 @@ public class DAOClass {
   public ArrayList<Prediction> getUserHistory(int userId) throws SQLException {
     ArrayList<Prediction> historyList = new ArrayList<>();
     String sql = "SELECT * FROM History WHERE user_id = ? ORDER BY date DESC";
-    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+    try{
+      PreparedStatement stmt = connection.prepareStatement(sql);
       stmt.setInt(1, userId);
       try (ResultSet rs = stmt.executeQuery()) {
         while (rs.next()) {
@@ -112,6 +114,26 @@ public class DAOClass {
       }
     }
     return historyList; 
+  }
+  public ArrayList<User> getAllUsers() throws SQLException {
+    ArrayList<User> allusers = new ArrayList<>();
+    String sql = "SELECT * FROM Users ORDER BY created_at DESC";
+    try {
+      Statement stmt = connection.createStatement();
+      try (ResultSet rs = stmt.executeQuery(sql);) {
+        while (rs.next()) {
+          User user = new User();
+          user.setUserId(rs.getInt("user_id"));
+          user.setFirstName(rs.getString("firstName"));
+          user.setLastName(rs.getString("lastName"));
+          user.setAge(rs.getInt("age"));
+          user.setGender(rs.getString("gender"));
+          user.setEmail(rs.getString("email"));
+          allusers.add(user);
+        }
+      }
+    }
+    return allusers ; 
   }
 
 }
