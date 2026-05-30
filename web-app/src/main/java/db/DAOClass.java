@@ -1,6 +1,7 @@
 package db;
 
 import beans.User;
+import beans.Prediction;
 
 import org.mindrot.jbcrypt.BCrypt;
 import java.sql.Connection;
@@ -9,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+import java.util.ArrayList;
 public class DAOClass {
   String dbHost = System.getenv("DB_HOST");
   String dbName = System.getenv("DB_NAME");
@@ -91,6 +93,25 @@ public class DAOClass {
       stmt.setString(5, targetInfo.getEmail());
       return stmt.executeUpdate() != 0;
     }
+  }
+  public ArrayList<Prediction> getUserHistory(int userId) throws SQLException {
+    ArrayList<Prediction> historyList = new ArrayList<>();
+    String sql = "SELECT * FROM History WHERE user_id = ? ORDER BY date DESC";
+    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+      stmt.setInt(1, userId);
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          Prediction pre = new Prediction();
+          pre.setHistoryId(rs.getInt("history_id"));
+          pre.setUserId(rs.getInt("user_id"));
+          pre.setInputData(rs.getString("input_data"));
+          pre.setPredictionRes(rs.getString("prediction_res"));
+          pre.setDate(rs.getString("date"));
+          historyList.add(pre);
+        }
+      }
+    }
+    return historyList; 
   }
 
 }
