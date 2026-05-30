@@ -16,6 +16,9 @@ import java.sql.SQLException;
 import java.util.Base64;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.IOException;
+import java.net.*;
+import java.util.*;
+
 
 @WebServlet("/controller")
 public class ControllerServlet extends HttpServlet {
@@ -43,9 +46,9 @@ public class ControllerServlet extends HttpServlet {
       else if("login".equals(requestType))
         rd = handleLogin(req, res);
       else if("profile".equals(requestType)) {
-        
+        rd = handleProfile(req,res);
       } else if("predict".equals(requestType)) {
-
+        rd = handlePrediction(req, res);
       } else if("history".equals(requestType)) {
 
       } else if("admin".equals(requestType)) {
@@ -72,6 +75,7 @@ public class ControllerServlet extends HttpServlet {
       loggedInUsers.put(sessionToken, newUser);
       res.addCookie(createSessionTokenCookie(sessionToken));
       req.setAttribute("user_info", newUser);
+      return req.getRequestDispatcher("/JSP/profile.jsp");
     } else {
       req.setAttribute("error_msg", "Email already linked to an account");
     }
@@ -88,11 +92,80 @@ public class ControllerServlet extends HttpServlet {
       loggedInUsers.put(sessionToken, candidateUser);
       res.addCookie(createSessionTokenCookie(sessionToken));
       req.setAttribute("user_info", candidateUser);
+      return req.getRequestDispatcher("/JSP/profile.jsp");
+
     } else {
       req.setAttribute("error_msg", "Invalid Credentials");
     }
     return req.getRequestDispatcher("/JSP/login.jsp");
   }
+
+  RequestDispatcher handleProfile(HttpServletRequest req, HttpServletResponse res) 
+      throws SQLException {
+    Cookie[] cookies =req.getCookies();
+    String userToken=null;
+
+    if(cookies != null){
+      for(Cookie c : cookies){
+        if("session_token".equals(c.getName())){
+          userToken = c.getValue();
+          break;
+        }
+      }
+    }
+    if (userToken!=null && loggedInUsers.containsKey(userToken)){
+      User currentUser = loggedInUsers.get(userToken);
+      req.setAttribute("user_info" , currentUser);
+
+      return req.getRequestDispatcher("/JSP/profile.jsp");
+    }else{
+      req.setAttribute("error_msg", "Access denied , please log in first");
+      return req.getRequestDispatcher("/JSP/login.jsp"); 
+    }
+}
+
+RequestDispatcher handlePrediction(HttpServletRequest req , HttpServletResponse res) 
+      throws SQLException {
+    Cookie[] cookies =req.getCookies();
+    String userToken=null;
+
+    if(cookies != null){
+      for(Cookie c : cookies){
+        if("session_token".equals(c.getName())){
+          userToken = c.getValue();
+          break;
+        }
+      }
+    }
+    if (userToken!=null && loggedInUsers.containsKey(userToken)){
+      User currentUser = loggedInUsers.get(userToken);
+      req.setAttribute("user_info" , currentUser);
+      try{
+        String jsonPayload = req.getParameter("json_data");
+
+        URL url = new URL("http://localhost:5000/predict");
+        HttpURLConnection conn= (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setDoOutput(true);
+
+        // Envoi du json
+        conn.getOutputStream().write(jsonPayload.getBytes("UTF-8"));
+
+        Scanner sc = new Scanner(conn.getInputStream()).useDelimiter("\\A");
+        String predictionresult =sc.hasNext() ? sc.next() : "";
+        sc.close();
+        req.setAttribute("prediction_result",predictionresult);
+        conn.disconnect();
+      }catch (Exception e) {
+          req.setAttribute("error_msg", "Error with the Flask API: " + e.getMessage());
+      }
+      return req.getRequestDispatcher("/JSP/predict.jsp");
+    }else{
+      req.setAttribute("error_msg", "Access denied , please log in first");
+      return req.getRequestDispatcher("/JSP/login.jsp"); 
+    }
+}
 
   Cookie createSessionTokenCookie(String sessionToken) {
     Cookie sessionCookie = new Cookie("session_token", sessionToken);
