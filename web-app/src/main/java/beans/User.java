@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class User {
+  int userId;
   String firstName;
   String lastName;
   int age;
@@ -22,6 +23,7 @@ public class User {
   }
 
   public User(ResultSet row) throws SQLException {
+    this.userId = row.getInt("user_id");
     this.firstName = row.getString("firstName");
     this.lastName = row.getString("lastName");
     this.age = row.getInt("age");
@@ -30,6 +32,7 @@ public class User {
     this.password = row.getString("password");
   }
 
+  public int getUserId() { return userId; }
   public String getFirstName() { return firstName; }
   public String getLastName() { return lastName; }
   public int getAge() { return age; }
@@ -37,6 +40,7 @@ public class User {
   public String getEmail() { return email; }
   public String getPassword() { return password; }
 
+  public void setUserId(int userId) { this.userId = userId; }
   public void setFirstName(String value) { this.firstName = value; }
   public void setLastName(String value) { this.lastName = value; }
   public void setAge(int value) { this.age = value; }
